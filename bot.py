@@ -11,7 +11,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Call
 BOT_TOKEN = "7783484055:AAGKrf9zDJfgBgSSG8SHJ-3lOYtzyu8qqM0"  # Replace with your actual bot token
 ADMIN_ID = 8367788232  # Replace with your admin user ID
 ALPHA_VANTAGE_API_KEY = "SDZISFXTYLMXUEBW"  # For market data
-REFERRAL_LINK = "https://t.me/victorex_Trader"  # Your referral link
+REFERRAL_LINK = "https://pocket-friends.com/r/hwgl3jonzs"  # Your referral link
 
 # Forex pairs for binary options
 FOREX_PAIRS = [
@@ -240,7 +240,7 @@ async def handle_callback(update: Update, context: CallbackContext):
         
         await query.edit_message_text(
             f"🔓 To get access to Victorex Trader signals:\n\n"
-            f"1. Register using our referral link:\n{REFERRAL_LINK}\n\n"
+            f"1. Register using our referral link and deposit at least $10 using the 120% promo code _FRIENDHWGL3JONZS_ :\n{REFERRAL_LINK}\n\n"
             f"2. After registration, send your referral ID here\n\n"
             f"3. Wait for admin approval (usually within 24 hours)\n\n"
             f"📞 Need help? Contact @victorex_Trader for support",
