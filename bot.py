@@ -588,7 +588,7 @@ async def handle_callback(update: Update, context: CallbackContext):
         
         await query.edit_message_text("Select user to ban:", reply_markup=reply_markup)
     
-    elif query.data startswith("ban_"):
+    elif query.data.startswith("ban_"):
         if user_id != ADMIN_ID:
             await query.edit_message_text("❌ Unauthorized access!")
             return
