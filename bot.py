@@ -213,7 +213,7 @@ def generate_signal(forex_pair, expiration_minutes):
             emoji = "⏸️"
         
         # Format response for binary options
-        response = f"{signal_color} {forex_pair} Binary Option Signal {emoji}\n"
+        response = f"{signal_color} {forex_pair} FOREX  Signal {emoji}\n"
         response += f"💰 Current Price: {current_price if current_price else 'N/A'}\n"
         response += f"⏰ Expiry: {expiration_minutes} minutes\n"
         response += f"📈 Direction: {trade_signal}\n\n"
@@ -224,7 +224,7 @@ def generate_signal(forex_pair, expiration_minutes):
         response += f"\n⏳ Expires: {(datetime.now() + timedelta(minutes=expiration_minutes)).strftime('%H:%M')}"
         response += f"\n🕒 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
         response += "\n\n⚡ Powered by Victorex Trader"
-        response += "\n\n⚠️ RISK WARNING: Binary options trading carries significant risk. Past performance doesn't guarantee future results."
+        response += "\n\n⚠️ RISK WARNING: FOREX trading carries significant risk. Past performance doesn't guarantee future results."
         
         return response
         
@@ -272,7 +272,7 @@ async def start(update: Update, context: CallbackContext):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
         "🏆 Welcome to Victorex Trader Signals!\n\n"
-        "We provide high-quality binary options signals based on technical analysis.\n\n"
+        "We provide high-quality FOREX signals based on technical analysis.\n\n"
         "Start by getting access to our signals!",
         reply_markup=reply_markup
     )
@@ -354,6 +354,7 @@ async def handle_callback(update: Update, context: CallbackContext):
         # Expiration selection for binary options
         keyboard = [
             [InlineKeyboardButton("1 min", callback_data="exp_1")],
+            [InlineKeyboardButton("3 min", callback_data="exp_5")],
             [InlineKeyboardButton("5 min", callback_data="exp_5")],
             [InlineKeyboardButton("15 min", callback_data="exp_15")],
             [InlineKeyboardButton("30 min", callback_data="exp_30")],
@@ -386,7 +387,7 @@ async def handle_callback(update: Update, context: CallbackContext):
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         tips_text = (
-            "📚 Binary Options Trading Tips:\n\n"
+            "📚  FOREX Trading Tips:\n\n"
             "🎯 Risk Management:\n"
             "• Never invest more than 2-3% of your capital on a single trade\n"
             "• Use stop-loss orders to limit losses\n"
@@ -427,8 +428,8 @@ async def handle_callback(update: Update, context: CallbackContext):
         about_text = (
             "🏆 Victorex Trader Signals\n\n"
             "We are a professional trading signal provider specializing in "
-            "binary options trading. Our signals are generated using advanced "
-            "technical analysis including MACD, Stochastic, and CCI indicators.\n\n"
+            "FOREX trading. Our signals are generated using advanced "
+            "trading analysis including MACD, Stochastic, and CCI indicators.\n\n"
             "📊 Our Approach:\n"
             "• Real-time market analysis\n"
             "• Multiple timeframe confirmation\n"
@@ -439,7 +440,7 @@ async def handle_callback(update: Update, context: CallbackContext):
             "• Multiple forex pairs\n"
             "• Various expiration times\n"
             "• Detailed analysis\n\n"
-            "⚠️ Disclaimer: Trading binary options involves significant risk of "
+            "⚠️ Disclaimer: Trading Forex options involves significant risk of "
             "capital loss. Past performance doesn't guarantee future results."
         )
         
