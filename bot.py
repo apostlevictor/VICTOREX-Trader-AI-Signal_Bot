@@ -269,7 +269,7 @@ async def start(update: Update, context: CallbackContext):
             [InlineKeyboardButton("ℹ️ About", callback_data="about")]
         ]
     
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    reply_markup = InlineKeyboardMarawaiteyboard)
     await update.message.reply_text(
         "🏆 Welcome to Victorex Trader Signals!\n\n"
         "We provide high-quality binary options signals based on technical analysis.\n\n"
@@ -706,7 +706,7 @@ async def handle_message(update: Update, context: CallbackContext):
     text = update.message.text
     
     # Check if user is banned
-     if user_id in banned_users:
+    if user_id in banned_users:
         await update.message.reply_text("❌ You are banned from using this bot.")
         return
     
