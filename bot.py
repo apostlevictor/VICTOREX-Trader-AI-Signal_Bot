@@ -269,7 +269,7 @@ async def start(update: Update, context: CallbackContext):
             [InlineKeyboardButton("ℹ️ About", callback_data="about")]
         ]
     
-    reply_markup = InlineKeyboardMarawaiteyboard)
+    reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text(
         "🏆 Welcome to Victorex Trader Signals!\n\n"
         "We provide high-quality binary options signals based on technical analysis.\n\n"
