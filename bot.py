@@ -10,7 +10,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Call
 # Configuration - REPLACE THESE WITH YOUR ACTUAL VALUES
 BOT_TOKEN = "7783484055:AAGKrf9zDJfgBgSSG8SHJ-3lOYtzyu8qqM0"  # Get from @BotFather on Telegram
 ADMIN_ID = 8367788232  # Your Telegram user ID (get from @userinfobot)
-DERIV_API_TOKEN = "YOUR_DERIV_API_TOKEN_HERE"  # Get from https://app.deriv.com/account/api-token
+DERIV_API_TOKEN = "bfndxWgvnRfsXy2"  # Get from https://app.deriv.com/account/api-token
 REFERRAL_LINK = "https://pocket-friends.com/r/hwgl3jonzs"  # Your referral link
 
 # Forex pairs for binary options
