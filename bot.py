@@ -8,10 +8,10 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, filters
 
 # Configuration - REPLACE THESE WITH YOUR ACTUAL VALUES
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"  # Get from @BotFather on Telegram
-ADMIN_ID = 123456789  # Your Telegram user ID (get from @userinfobot)
-TWELVE_DATA_API_KEY = "YOUR_TWELVE_DATA_API_KEY"  # Get from https://twelvedata.com/
-REFERRAL_LINK = "https://t.me/victorex_Trader"  # Your referral link
+BOT_TOKEN = "7783484055:AAGKrf9zDJfgBgSSG8SHJ-3lOYtzyu8qqM0"  # Get from @BotFather on Telegram
+ADMIN_ID = 8367788232  # Your Telegram user ID (get from @userinfobot)
+TWELVE_DATA_API_KEY = "91c1473c09a64d73ae256bf1e24daf23"  # Get from https://twelvedata.com/
+REFERRAL_LINK = "https://pocket-friends.com/r/hwgl3jonzs"  # Your referral link
 
 # Forex pairs supported by Twelve Data API
 FOREX_PAIRS = [
@@ -325,7 +325,7 @@ async def handle_callback(update: Update, context: CallbackContext):
             f"1. Register using our referral link:\n{REFERRAL_LINK}\n\n"
             f"2. After registration, send your referral ID here\n\n"
             f"3. Wait for admin approval (usually within 24 hours)\n\n"
-            f"📞 Need help? Contact @victorex_Trader for support",
+            f"📞 Need help? Contact @VICTOREXTRADER_BOT for support",
             reply_markup=reply_markup
         )
     
@@ -410,7 +410,7 @@ async def handle_callback(update: Update, context: CallbackContext):
         
         await query.edit_message_text(
             "🆘 Need help or have questions?\n\n"
-            "📞 Contact our support team: @victorex_Trader\n\n"
+            "📞 Contact our support team: @VICTOREXTRADER_BOT\n\n"
             "We're here to assist you with:\n"
             "• Account issues\n"
             "• Signal questions\n"
@@ -605,7 +605,7 @@ async def handle_callback(update: Update, context: CallbackContext):
             await context.bot.send_message(
                 ban_id,
                 "❌ Your access to Victorex Trader Signals has been revoked.\n\n"
-                "If you believe this is a mistake, please contact @victorex_Trader"
+                "If you believe this is a mistake, please contact @VICTOREXTRADER_BOT"
             )
         except:
             logger.error(f"Could not notify user {ban_id}")
@@ -721,7 +721,7 @@ async def handle_message(update: Update, context: CallbackContext):
                 try:
                     await context.bot.send_message(
                         uid,
-                        f"📢 Announcement from Victorex Trader:\n\n{text}"
+                        f" Victorex Trader:\n\n{text}"
                     )
                     sent_count += 1
                 except:
@@ -832,7 +832,7 @@ async def ban_command(update: Update, context: CallbackContext):
             await context.bot.send_message(
                 ban_id,
                 "❌ Your access to Victorex Trader Signals has been revoked.\n\n"
-                "If you believe this is a mistake, please contact @victorex_Trader"
+                "If you believe this is a mistake, please contact @VICTOREXTRADER_BOT"
             )
         except:
             logger.error(f"Could not notify user {ban_id}")
