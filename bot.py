@@ -258,7 +258,7 @@ def generate_signal(forex_pair, expiration_minutes):
         
         response += f"\n⏳ Expires: {(datetime.now() + timedelta(minutes=expiration_minutes)).strftime('%H:%M')}"
         response += f"\n🕒 Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        response += "\n\n⚡ Powered by Victorex Trader"
+        response += "\n\n⚡ Powered by @VICTOREXTRADER_BOT"
         response += "\n\n⚠️ RISK WARNING: Binary options trading carries significant risk. Past performance doesn't guarantee future results."
         
         return response
@@ -360,7 +360,7 @@ async def handle_callback(update: Update, context: CallbackContext):
             f"1. Register using our referral link:\n{REFERRAL_LINK}\n\n"
             f"2. After registration, send your referral ID here\n\n"
             f"3. Wait for admin approval (usually within 24 hours)\n\n"
-            f"📞 Need help? Contact @victorex_Trader for support",
+            f"📞 Need help? Contact @VICTOREXTRADER_BOT for support",
             reply_markup=reply_markup
         )
     
@@ -445,7 +445,7 @@ async def handle_callback(update: Update, context: CallbackContext):
         
         await query.edit_message_text(
             "🆘 Need help or have questions?\n\n"
-            "📞 Contact our support team: @victorex_Trader\n\n"
+            "📞 Contact our support team: @VICTOREXTRADER_BOT\n\n"
             "We're here to assist you with:\n"
             "• Account issues\n"
             "• Signal questions\n"
@@ -640,7 +640,7 @@ async def handle_callback(update: Update, context: CallbackContext):
             await context.bot.send_message(
                 ban_id,
                 "❌ Your access to Victorex Trader Signals has been revoked.\n\n"
-                "If you believe this is a mistake, please contact @victorex_Trader"
+                "If you believe this is a mistake, please contact @VICTOREXTRADER_BOT"
             )
         except:
             logger.error(f"Could not notify user {ban_id}")
@@ -867,7 +867,7 @@ async def ban_command(update: Update, context: CallbackContext):
             await context.bot.send_message(
                 ban_id,
                 "❌ Your access to Victorex Trader Signals has been revoked.\n\n"
-                "If you believe this is a mistake, please contact @victorex_Trader"
+                "If you believe this is a mistake, please contact @VICTOREXTRADER_BOT"
             )
         except:
             logger.error(f"Could not notify user {ban_id}")
