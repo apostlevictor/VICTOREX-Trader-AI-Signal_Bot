@@ -10,7 +10,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Call
 # Configuration - REPLACE THESE WITH YOUR ACTUAL VALUES
 BOT_TOKEN = "7783484055:AAGKrf9zDJfgBgSSG8SHJ-3lOYtzyu8qqM0"  # Get from @BotFather on Telegram
 ADMIN_ID = 8367788232  # Your Telegram user ID (get from @userinfobot)
-TWELVE_DATA_API_KEY = "91c1473c09a64d73ae256bf1e24daf23"  # Get from https://twelvedata.com/
+TWELVE_DATA_API_KEY = "c63322030ca540bc906238471bfb04e4"  # Get from https://twelvedata.com/
 REFERRAL_LINK = "https://pocket-friends.com/r/hwgl3jonzs"  # Your referral link
 
 # Forex pairs supported by Twelve Data API
@@ -397,7 +397,7 @@ async def handle_callback(update: Update, context: CallbackContext):
             "• Trade during high volatility periods (market openings)\n"
             "• Avoid trading during news events if you're a beginner\n\n"
             "⚠️ Important:\n"
-            "• Binary options trading carries significant risk\n"
+            "• forex and binary options trading carries significant risk\n"
             "• Past performance doesn't guarantee future results\n"
             "• Only trade with money you can afford to lose\n\n"
             "📖 Education is key to success in trading!"
