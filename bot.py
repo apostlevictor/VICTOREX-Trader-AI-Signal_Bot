@@ -10,7 +10,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Call
 # Configuration - REPLACE THESE WITH YOUR ACTUAL VALUES
 BOT_TOKEN = "7783484055:AAGKrf9zDJfgBgSSG8SHJ-3lOYtzyu8qqM0"  # Get from @BotFather on Telegram
 ADMIN_ID = 8367788232  # Your Telegram user ID (get from @userinfobot)
-TWELVE_DATA_API_KEY = "c63322030ca540bc906238471bfb04e4"  # Get from https://twelvedata.com/
+TWELVE_DATA_API_KEY = "82a9a98cc0f7401a9140f7fe0bf4e4b8"  # Get from https://twelvedata.com/
 REFERRAL_LINK = "https://pocket-friends.com/r/hwgl3jonzs"  # Your referral link
 
 # Forex pairs supported by Twelve Data API
