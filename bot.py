@@ -25,7 +25,7 @@ import random
 # Configure bot settings directly in the code
 TELEGRAM_TOKEN = "8269947031:AAEbJeffGvWU0AlKeqSlTSxabKacLPWLT4M"  # Replace with your bot token
 POLYGON_API_KEY = "oW9UWpfhEkDzXmMa0x1x9o8S5pViL0B7"    # Replace with your Polygon.io API key
-ADMIN_ID = "836778Upda"             # Replace with your Telegram user ID
+ADMIN_ID = "8367788232"             # Replace with your Telegram user ID
 POCKET_OPTION_REFERRAL = "https://pocket-friends.com/r/hwgl3jonzs"  # Replace with your referral link
 
 # Nigeria timezone
