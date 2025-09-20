@@ -26,7 +26,7 @@ import random
 TELEGRAM_TOKEN = "8269947031:AAEbJeffGvWU0AlKeqSlTSxabKacLPWLT4M"  # Replace with your bot token
 POLYGON_API_KEY = "oW9UWpfhEkDzXmMa0x1x9o8S5pViL0B7"    # Replace with your Polygon.io API key
 ADMIN_ID = "836778Upda"             # Replace with your Telegram user ID
-POCKET_OPTION_REFERRAL = "https://pocketoption.com/en/referral/12345"  # Replace with your referral link
+POCKET_OPTION_REFERRAL = "https://pocket-friends.com/r/hwgl3jonzs"  # Replace with your referral link
 
 # Nigeria timezone
 NIGERIA_TZ = pytz.timezone('Africa/Lagos')
@@ -43,18 +43,17 @@ ADMIN_APPROVAL = range(1)
 
 # Assets for trading
 OTC_ASSETS = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "META", 
-    "TSLA", "NVDA", "JPM", "JNJ", "V",
-    "WMT", "PG", "MA", "DIS", "BAC",
-    "XOM", "CSCO", "VZ", "ADBE", "INTC",
-    "CMCSA", "PFE", "NFLX", "CRM", "PYPL"
+    'EUR/JPY OTC', 'AUD/CAD OTC', 'AUD/CHF OTC', 'AUD/USD OTC',
+    'CAD/CHF OTC', 'CAD/JPY OTC', 'CHF/JPY OTC', 'EUR/AUD OTC',
+    'EUR/CAD OTC', 'EUR/CHF OTC', 'EUR/USD OTC', 'USD/CAD OTC',
+    'USD/CHF OTC', 'USD/JPY OTC', 'AUD/JPY OTC'
 ]
 
 CURRENCY_ASSETS = [
-    "EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF", 
-    "AUD/USD", "USD/CAD", "NZD/USD", "EUR/GBP",
-    "EUR/JPY", "GBP/JPY", "AUD/JPY", "EUR/AUD",
-    "EUR/CAD", "EUR/CHF", "GBP/AUD", "GBP/CAD"
+     'EUR/JPY', 'AUD/CAD', 'AUD/CHF', 'AUD/USD',
+    'CAD/CHF', 'CAD/JPY', 'CHF/JPY', 'EUR/AUD',
+    'EUR/CAD', 'EUR/CHF', 'EUR/USD', 'USD/CAD',
+    'USD/CHF', 'USD/JPY', 'AUD/JPY'
 ]
 
 ALL_ASSETS = OTC_ASSETS + CURRENCY_ASSETS
