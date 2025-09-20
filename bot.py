@@ -509,7 +509,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "You will be notified once approved.\n\n"
                 f"Please register on Pocket Option using our referral link:\n{POCKET_OPTION_REFERRAL}\n\n"
                 "After registration, please wait for admin approval to access trading signals."
-          Upda
+          
 async def generate_signal_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Start the signal generation process"""
     user_id = update.effective_user.id
