@@ -6,4 +6,4 @@ ta
 matplotlib
 pytz
 schedule
-pillow>
+pillow
