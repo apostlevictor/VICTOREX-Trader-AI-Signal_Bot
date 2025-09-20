@@ -1,4 +1,9 @@
 python-telegram-bot
+requests
 pandas
 numpy
-requests
+ta
+matplotlib
+pytz
+schedule
+pillow>
