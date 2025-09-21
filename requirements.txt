@@ -1,9 +1,8 @@
 python-telegram-bot
-requests
+python-metaapi-cloud-sdk
 pandas
 numpy
-ta
-matplotlib
-pytz
+ta-lib
+requests
+python-dotenv
 schedule
-pillow
