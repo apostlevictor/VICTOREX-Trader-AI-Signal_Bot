@@ -18,9 +18,9 @@ TWELVE_DATA_API_KEY = "82a9a98cc0f7401a9140f7fe0bf4e4b8"
 WALLET_ADDRESS = "0xF662cE8D1c415b480582f06b2f69eF31e639Db76"
 
 # MT5 Configuration
-MT5_ACCOUNT_ID = "YOUR_MT5_ACCOUNT_ID"
-MT5_PASSWORD = "YOUR_MT5_PASSWORD"
-MT5_SERVER = "YOUR_MT5_SERVER"
+MT5_ACCOUNT_ID = "200011035"
+MT5_PASSWORD = "u14QF3#d"
+MT5_SERVER = "https://web.metatrader.app/terminal"
 
 # Initialize logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
