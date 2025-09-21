@@ -14,10 +14,10 @@ from tabulate import tabulate
 
 # ===== CONFIGURATION =====
 # Replace these values with your actual credentials
-TOKEN = "YOUR_TELEGRAM_BOT_TOKEN_HERE"
-ADMIN_ID = "YOUR_ADMIN_USER_ID_HERE"  # Get this from @userinfobot on Telegram
-TWELVE_DATA_API_KEY = "YOUR_TWELVE_DATA_API_KEY_HERE"
-WALLET_ADDRESS = "YOUR_WALLET_ADDRESS_HERE"
+TOKEN = "8269947031:AAHI92w0sCTo0842N0FBBsJDIQkAp83IOko"
+ADMIN_ID = "8367788232"  # Get this from @userinfobot on Telegram
+TWELVE_DATA_API_KEY = "82a9a98cc0f7401a9140f7fe0bf4e4b8"
+WALLET_ADDRESS = "0xF662cE8D1c415b480582f06b2f69eF31e639Db76"
 
 # Bot settings
 TRIAL_DAYS = 3
