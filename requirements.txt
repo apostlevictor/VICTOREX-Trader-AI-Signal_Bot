@@ -1,8 +1,9 @@
 python-telegram-bot
-python-metaapi-cloud-sdk
 pandas
 numpy
-ta-lib
 requests
-python-dotenv
 schedule
+python-dotenv
+tabulate
+MetaTrader5
+talib-binary
