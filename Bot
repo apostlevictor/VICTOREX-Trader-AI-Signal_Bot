@@ -1,0 +1,510 @@
+import logging
+import pandas as pd
+import numpy as np
+import requests
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
+import talib
+from metaapi_cloud_sdk import MetaApi
+from datetime import datetime, timedelta
+import schedule
+import time
+import threading
+
+# Configuration (in production, use environment variables)
+TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+ADMIN_ID = "YOUR_ADMIN_USER_ID"
+TWELVE_DATA_API_KEY = "YOUR_TWELVE_DATA_API_KEY"
+WALLET_ADDRESS = "YOUR_WALLET_ADDRESS"
+
+# MT5 Configuration
+MT5_ACCOUNT_ID = "YOUR_MT5_ACCOUNT_ID"
+MT5_PASSWORD = "YOUR_MT5_PASSWORD"
+MT5_SERVER = "YOUR_MT5_SERVER"
+
+# Initialize logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# User states and data storage (in production, use a database)
+users = {}
+trial_users = {}
+subscribed_users = {}
+banned_users = set()
+
+# Forex pairs and crypto symbols
+FOREX_PAIRS = [
+    'EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'USD/CAD', 'NZD/USD',
+    'EUR/GBP', 'EUR/JPY', 'GBP/JPY', 'AUD/JPY', 'EUR/CAD', 'GBP/CHF', 'CAD/JPY'
+]
+
+CRYPTO_SYMBOLS = [
+    'BTC/USD', 'ETH/USD', 'XRP/USD', 'LTC/USD', 'BCH/USD', 
+    'ADA/USD', 'DOT/USD', 'LINK/USD', 'BNB/USD', 'XLM/USD'
+]
+
+# Initialize MetaApi for MT5 connection
+api = MetaApi(MT5_ACCOUNT_ID, MT5_PASSWORD)
+
+class MT5Connection:
+    def __init__(self):
+        self.connection = None
+        self.account = None
+        
+    async def connect(self):
+        try:
+            self.account = await api.metatrader_account_api.get_account(MT5_ACCOUNT_ID)
+            await self.account.wait_connected()
+            self.connection = self.account.get_rpc_connection()
+            await self.connection.wait_synchronized()
+            logger.info("MT5 connected successfully")
+        except Exception as e:
+            logger.error(f"MT5 connection failed: {str(e)}")
+    
+    async def get_account_info(self):
+        if not self.connection:
+            await self.connect()
+        return await self.connection.get_account_information()
+    
+    async def get_positions(self):
+        if not self.connection:
+            await self.connect()
+        return await self.connection.get_positions()
+    
+    async def get_history(self, from_date, to_date):
+        if not self.connection:
+            await self.connect()
+        return await self.connection.get_history_deals_by_date(from_date, to_date)
+
+mt5_connection = MT5Connection()
+
+def get_technical_indicators(data):
+    df = pd.DataFrame(data)
+    df['close'] = df['close'].astype(float)
+    df['high'] = df['high'].astype(float)
+    df['low'] = df['low'].astype(float)
+    df['volume'] = df['volume'].astype(float)
+    
+    # Calculate indicators
+    df['rsi'] = talib.RSI(df['close'], timeperiod=14)
+    df['macd'], df['macd_signal'], df['macd_hist'] = talib.MACD(df['close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    df['sma20'] = talib.SMA(df['close'], timeperiod=20)
+    df['sma50'] = talib.SMA(df['close'], timeperiod=50)
+    df['bb_upper'], df['bb_middle'], df['bb_lower'] = talib.BBANDS(df['close'], timeperiod=20)
+    df['stoch_k'], df['stoch_d'] = talib.STOCH(df['high'], df['low'], df['close'], fastk_period=14, slowk_period=3, slowd_period=3)
+    
+    return df.iloc[-1]
+
+def generate_signal(symbol, interval='1min'):
+    try:
+        # Fetch data from Twelve Data API
+        url = f"https://api.twelvedata.com/time_series?symbol={symbol}&interval={interval}&apikey={TWELVE_DATA_API_KEY}"
+        response = requests.get(url)
+        data = response.json()
+        
+        if 'values' not in data:
+            return "No data available"
+        
+        # Process data and calculate indicators
+        latest_indicators = get_technical_indicators(data['values'])
+        
+        # Generate signal based on indicators
+        signal = "NEUTRAL"
+        confidence = 0
+        
+        # RSI based signal
+        if latest_indicators['rsi'] < 30:
+            signal = "BUY"
+            confidence += 0.3
+        elif latest_indicators['rsi'] > 70:
+            signal = "SELL"
+            confidence += 0.3
+        
+        # MACD based signal
+        if latest_indicators['macd'] > latest_indicators['macd_signal']:
+            signal = "BUY"
+            confidence += 0.2
+        else:
+            signal = "SELL"
+            confidence += 0.2
+        
+        # Moving average crossover
+        if latest_indicators['sma20'] > latest_indicators['sma50']:
+            signal = "BUY"
+            confidence += 0.2
+        else:
+            signal = "SELL"
+            confidence += 0.2
+        
+        # Bollinger Bands
+        if latest_indicators['close'] < latest_indicators['bb_lower']:
+            signal = "BUY"
+            confidence += 0.15
+        elif latest_indicators['close'] > latest_indicators['bb_upper']:
+            signal = "SELL"
+            confidence += 0.15
+        
+        # Stochastic
+        if latest_indicators['stoch_k'] < 20 and latest_indicators['stoch_d'] < 20:
+            signal = "BUY"
+            confidence += 0.15
+        elif latest_indicators['stoch_k'] > 80 and latest_indicators['stoch_d'] > 80:
+            signal = "SELL"
+            confidence += 0.15
+        
+        confidence = min(confidence, 1.0)
+        
+        return {
+            'symbol': symbol,
+            'signal': signal,
+            'confidence': confidence,
+            'price': latest_indicators['close'],
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'indicators': {
+                'rsi': round(latest_indicators['rsi'], 2),
+                'macd': round(latest_indicators['macd'], 5),
+                'macd_signal': round(latest_indicators['macd_signal'], 5),
+                'sma20': round(latest_indicators['sma20'], 5),
+                'sma50': round(latest_indicators['sma50'], 5)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error generating signal: {str(e)}")
+        return f"Error generating signal: {str(e)}"
+
+def start(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+    
+    if user_id in banned_users:
+        update.message.reply_text("⛔ Your account has been banned. Contact admin for support.")
+        return
+    
+    if user_id not in users:
+        users[user_id] = {
+            'start_date': datetime.now(),
+            'trial_end': datetime.now() + timedelta(days=3),
+            'subscribed': False,
+            'subscription_end': None
+        }
+        trial_users[user_id] = users[user_id]
+    
+    keyboard = [
+        [InlineKeyboardButton("📈 Generate Signal", callback_data='generate_signal')],
+        [InlineKeyboardButton("📊 Account Info", callback_data='account_info')],
+        [InlineKeyboardButton("💰 Subscribe", callback_data='subscribe')],
+        [InlineKeyboardButton("🆘 Help", callback_data='help')]
+    ]
+    
+    if user_id == ADMIN_ID:
+        keyboard.append([InlineKeyboardButton("👨‍💼 Admin Panel", callback_data='admin_panel')])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    update.message.reply_text(
+        "Welcome to Victorex Trader AI Bot!\n\n"
+        "I provide Forex and Crypto trading signals based on technical analysis.\n\n"
+        "Your trial period ends: " + users[user_id]['trial_end'].strftime("%Y-%m-%d %H:%M:%S"),
+        reply_markup=reply_markup
+    )
+
+def button_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+    user_id = query.from_user.id
+    
+    if user_id in banned_users:
+        query.edit_message_text("⛔ Your account has been banned. Contact admin for support.")
+        return
+    
+    if query.data == 'generate_signal':
+        generate_signal_menu(update, context)
+    elif query.data == 'account_info':
+        get_account_info(update, context)
+    elif query.data == 'subscribe':
+        show_subscription_options(update, context)
+    elif query.data == 'help':
+        show_help(update, context)
+    elif query.data == 'admin_panel' and user_id == ADMIN_ID:
+        show_admin_panel(update, context)
+    elif query.data.startswith('signal_'):
+        asset_type, symbol = query.data.split('_')[1], query.data.split('_')[2]
+        generate_specific_signal(update, context, symbol)
+    elif query.data.startswith('forex_'):
+        show_forex_pairs(update, context)
+    elif query.data.startswith('crypto_'):
+        show_crypto_pairs(update, context)
+    elif query.data.startswith('subscribe_'):
+        subscription_type = query.data.split('_')[1]
+        process_subscription(update, context, subscription_type)
+    elif query.data == 'back_to_main':
+        start(update, context)
+
+def generate_signal_menu(update: Update, context: CallbackContext):
+    query = update.callback_query
+    keyboard = [
+        [InlineKeyboardButton("💱 Forex Pairs", callback_data='forex_pairs')],
+        [InlineKeyboardButton("₿ Crypto Pairs", callback_data='crypto_pairs')],
+        [InlineKeyboardButton("⬅️ Back", callback_data='back_to_main')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text("Select asset type:", reply_markup=reply_markup)
+
+def show_forex_pairs(update: Update, context: CallbackContext):
+    query = update.callback_query
+    keyboard = []
+    row = []
+    for i, pair in enumerate(FOREX_PAIRS):
+        row.append(InlineKeyboardButton(pair, callback_data=f'signal_forex_{pair}'))
+        if (i + 1) % 2 == 0:
+            keyboard.append(row)
+            row = []
+    if row:
+        keyboard.append(row)
+    keyboard.append([InlineKeyboardButton("⬅️ Back", callback_data='generate_signal')])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text("Select Forex pair:", reply_markup=reply_markup)
+
+def show_crypto_pairs(update: Update, context: CallbackContext):
+    query = update.callback_query
+    keyboard = []
+    row = []
+    for i, symbol in enumerate(CRYPTO_SYMBOLS):
+        row.append(InlineKeyboardButton(symbol, callback_data=f'signal_crypto_{symbol}'))
+        if (i + 1) % 2 == 0:
+            keyboard.append(row)
+            row = []
+    if row:
+        keyboard.append(row)
+    keyboard.append([InlineKeyboardButton("⬅️ Back", callback_data='generate_signal')])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text("Select Crypto pair:", reply_markup=reply_markup)
+
+def generate_specific_signal(update: Update, context: CallbackContext, symbol: str):
+    query = update.callback_query
+    user_id = query.from_user.id
+    
+    # Check if user has access
+    if not has_access(user_id):
+        query.edit_message_text(
+            "❌ Your trial has expired. Please subscribe to continue using signals.\n\n"
+            "Use /subscribe to see subscription options."
+        )
+        return
+    
+    query.edit_message_text(f"⏳ Generating signal for {symbol}...")
+    
+    signal = generate_signal(symbol.replace('/', ''))
+    
+    if isinstance(signal, str):
+        query.edit_message_text(signal)
+        return
+    
+    message = (
+        f"🎯 Signal for {signal['symbol']}\n"
+        f"📊 Signal: {signal['signal']}\n"
+        f"💪 Confidence: {signal['confidence']*100:.2f}%\n"
+        f"💰 Price: {signal['price']}\n"
+        f"⏰ Time: {signal['timestamp']}\n\n"
+        f"Technical Indicators:\n"
+        f"RSI: {signal['indicators']['rsi']}\n"
+        f"MACD: {signal['indicators']['macd']}\n"
+        f"MACD Signal: {signal['indicators']['macd_signal']}\n"
+        f"SMA20: {signal['indicators']['sma20']}\n"
+        f"SMA50: {signal['indicators']['sma50']}\n\n"
+        f"⚠️ Disclaimer: This is not financial advice. Trade at your own risk."
+    )
+    
+    query.edit_message_text(message)
+
+def get_account_info(update: Update, context: CallbackContext):
+    query = update.callback_query
+    user_id = query.from_user.id
+    
+    try:
+        # Get MT5 account info
+        account_info = mt5_connection.get_account_info()
+        positions = mt5_connection.get_positions()
+        
+        balance = account_info.get('balance', 0)
+        equity = account_info.get('equity', 0)
+        margin = account_info.get('margin', 0)
+        free_margin = account_info.get('freeMargin', 0)
+        
+        message = (
+            f"📊 Account Information:\n\n"
+            f"💵 Balance: ${balance:.2f}\n"
+            f"📈 Equity: ${equity:.2f}\n"
+            f"📉 Margin: ${margin:.2f}\n"
+            f"🆓 Free Margin: ${free_margin:.2f}\n\n"
+            f"📋 Open Positions: {len(positions)}\n"
+        )
+        
+        for pos in positions:
+            message += f"{pos['symbol']} - {pos['type']} - Volume: {pos['volume']} - Profit: ${pos['profit']:.2f}\n"
+        
+        query.edit_message_text(message)
+    except Exception as e:
+        logger.error(f"Error getting account info: {str(e)}")
+        query.edit_message_text("❌ Error retrieving account information. Please try again later.")
+
+def show_subscription_options(update: Update, context: CallbackContext):
+    query = update.callback_query
+    user_id = query.from_user.id
+    
+    if user_id in subscribed_users:
+        sub_end = subscribed_users[user_id]['subscription_end']
+        query.edit_message_text(f"✅ You are already subscribed until {sub_end.strftime('%Y-%m-%d %H:%M:%S')}")
+        return
+    
+    keyboard = [
+        [InlineKeyboardButton("1 Month - $50", callback_data='subscribe_1month')],
+        [InlineKeyboardButton("3 Months - $120", callback_data='subscribe_3months')],
+        [InlineKeyboardButton("6 Months - $200", callback_data='subscribe_6months')],
+        [InlineKeyboardButton("⬅️ Back", callback_data='back_to_main')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = (
+        "💰 Subscription Plans:\n\n"
+        "1 Month - $50\n"
+        "3 Months - $120 (Save $30)\n"
+        "6 Months - $200 (Save $100)\n\n"
+        f"Send payment to: {WALLET_ADDRESS}\n"
+        "After payment, send transaction hash to admin for approval."
+    )
+    
+    query.edit_message_text(message, reply_markup=reply_markup)
+
+def process_subscription(update: Update, context: CallbackContext, subscription_type: str):
+    query = update.callback_query
+    
+    durations = {
+        '1month': 30,
+        '3months': 90,
+        '6months': 180
+    }
+    
+    duration_days = durations.get(subscription_type, 30)
+    cost = {
+        '1month': 50,
+        '3months': 120,
+        '6months': 200
+    }.get(subscription_type, 50)
+    
+    message = (
+        f"Please send ${cost} to the following wallet address:\n\n"
+        f"📍 {WALLET_ADDRESS}\n\n"
+        f"After payment, forward the transaction hash to @admin for approval.\n"
+        f"Your subscription will be activated within 24 hours after payment confirmation."
+    )
+    
+    query.edit_message_text(message)
+
+def show_help(update: Update, context: CallbackContext):
+    query = update.callback_query
+    help_text = (
+        "🤖 Victorex Trader AI Bot Help\n\n"
+        "📈 Generate Signals: Get trading signals for Forex and Crypto pairs\n"
+        "📊 Account Info: View your MT5 account balance and positions\n"
+        "💰 Subscribe: Purchase a subscription after trial period\n\n"
+        "Commands:\n"
+        "/start - Start the bot\n"
+        "/subscribe - Show subscription options\n"
+        "/help - Show this help message\n\n"
+        "For support, contact @admin"
+    )
+    query.edit_message_text(help_text)
+
+def show_admin_panel(update: Update, context: CallbackContext):
+    query = update.callback_query
+    user_id = query.from_user.id
+    
+    if user_id != ADMIN_ID:
+        query.edit_message_text("⛔ Access denied.")
+        return
+    
+    keyboard = [
+        [InlineKeyboardButton("📢 Broadcast Message", callback_data='admin_broadcast')],
+        [InlineKeyboardButton("👥 Manage Users", callback_data='admin_manage_users')],
+        [InlineKeyboardButton("✅ Approve Subscriptions", callback_data='admin_approve')],
+        [InlineKeyboardButton("⬅️ Back", callback_data='back_to_main')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text("👨‍💼 Admin Panel", reply_markup=reply_markup)
+
+def has_access(user_id):
+    if user_id == ADMIN_ID:
+        return True
+    
+    if user_id in banned_users:
+        return False
+    
+    if user_id in subscribed_users:
+        return True
+    
+    if user_id in trial_users:
+        if datetime.now() < trial_users[user_id]['trial_end']:
+            return True
+        else:
+            # Trial expired, remove from trial users
+            trial_users.pop(user_id, None)
+            return False
+    
+    return False
+
+def check_trials():
+    """Check and remove expired trials"""
+    current_time = datetime.now()
+    expired_users = []
+    
+    for user_id, user_data in trial_users.items():
+        if current_time > user_data['trial_end']:
+            expired_users.append(user_id)
+    
+    for user_id in expired_users:
+        trial_users.pop(user_id, None)
+
+def check_subscriptions():
+    """Check and remove expired subscriptions"""
+    current_time = datetime.now()
+    expired_users = []
+    
+    for user_id, user_data in subscribed_users.items():
+        if current_time > user_data['subscription_end']:
+            expired_users.append(user_id)
+    
+    for user_id in expired_users:
+        subscribed_users.pop(user_id, None)
+        users[user_id]['subscribed'] = False
+        users[user_id]['subscription_end'] = None
+
+def schedule_checks():
+    """Run periodic checks for trials and subscriptions"""
+    schedule.every().day.at("00:00").do(check_trials)
+    schedule.every().day.at("00:00").do(check_subscriptions)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+def main():
+    # Start the scheduler in a separate thread
+    scheduler_thread = threading.Thread(target=schedule_checks, daemon=True)
+    scheduler_thread.start()
+    
+    # Create updater and dispatcher
+    updater = Updater(TOKEN)
+    dispatcher = updater.dispatcher
+    
+    # Add handlers
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("subscribe", show_subscription_options))
+    dispatcher.add_handler(CommandHandler("help", show_help))
+    dispatcher.add_handler(CallbackQueryHandler(button_handler))
+    
+    # Start the bot
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
