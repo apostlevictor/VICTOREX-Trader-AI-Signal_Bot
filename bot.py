@@ -311,7 +311,7 @@ def generate_specific_signal(update: Update, context: CallbackContext, symbol: s
         f"MACD Signal: {signal['indicators']['macd_signal']}\n"
         f"SMA20: {signal['indicators']['sma20']}\n"
         f"SMA50: {signal['indicators']['sma50']}\n\n"
-        f"⚠️ Disclaimer: This is not financial advice. Trade at your own risk."
+        f"⚠️ Disclaimer: protect your capital to avoid loss, remember this is not a guarantee of profit but a helping hand bot. Trade at your own risk."
     )
     
     query.edit_message_text(message)
